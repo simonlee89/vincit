@@ -245,17 +245,46 @@ def health_check():
     """헬스체크 엔드포인트"""
     return jsonify({"status": "healthy", "message": "서버가 정상적으로 실행 중입니다."})
 
+@app.route('/debug')
+def debug_info():
+    """디버그 정보 엔드포인트"""
+    import sys
+    return jsonify({
+        "python_version": sys.version,
+        "current_directory": os.getcwd(),
+        "template_folder": app.template_folder,
+        "static_folder": app.static_folder,
+        "files_in_cwd": os.listdir('.'),
+        "templates_exist": os.path.exists('templates'),
+        "templates_files": os.listdir('templates') if os.path.exists('templates') else [],
+        "static_exist": os.path.exists('static'),
+        "static_files": os.listdir('static') if os.path.exists('static') else [],
+        "env_vars": {
+            "FLASK_ENV": os.getenv('FLASK_ENV'),
+            "GOOGLE_SERVICE_ACCOUNT_JSON": "설정됨" if os.getenv('GOOGLE_SERVICE_ACCOUNT_JSON') else "설정되지 않음",
+            "GOOGLE_SPREADSHEET_ID": os.getenv('GOOGLE_SPREADSHEET_ID', 'default_value_used')
+        }
+    })
+
 @app.route('/')
 def index():
     """메인 페이지"""
     try:
         print("메인 페이지 요청 받음")
+        # Vercel 환경에서 템플릿 파일 존재 확인
+        template_path = os.path.join(app.template_folder, 'index.html')
+        if not os.path.exists(template_path):
+            print(f"템플릿 파일을 찾을 수 없습니다: {template_path}")
+            print(f"현재 작업 디렉토리: {os.getcwd()}")
+            print(f"템플릿 폴더: {app.template_folder}")
+            return f"<h1>템플릿 오류</h1><p>index.html 파일을 찾을 수 없습니다.</p><p>경로: {template_path}</p>", 500
+        
         return render_template('index.html')
     except Exception as e:
         print(f"메인 페이지 렌더링 오류: {e}")
         import traceback
         print(f"상세 오류: {traceback.format_exc()}")
-        return f"<h1>서버 오류</h1><p>오류: {str(e)}</p>", 500
+        return f"<h1>서버 오류</h1><p>오류: {str(e)}</p><pre>{traceback.format_exc()}</pre>", 500
 
 @app.route('/api/data')
 def get_data():
@@ -326,6 +355,22 @@ def test_connection():
 
 # Vercel을 위한 WSGI 애플리케이션 export
 # Vercel은 'app' 변수를 찾아서 WSGI 애플리케이션으로 사용합니다.
+
+# Vercel 배포를 위한 애플리케이션 팩토리 함수
+def create_app():
+    """애플리케이션 팩토리 함수"""
+    # templates 폴더 생성
+    if not os.path.exists('templates'):
+        os.makedirs('templates')
+    
+    # static 폴더 생성
+    if not os.path.exists('static'):
+        os.makedirs('static')
+    
+    return app
+
+# Vercel에서 사용할 애플리케이션 인스턴스
+application = create_app()
 
 if __name__ == '__main__':
     # templates 폴더 생성
