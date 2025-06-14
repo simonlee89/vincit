@@ -359,23 +359,27 @@ def test_connection():
 # Vercel 배포를 위한 애플리케이션 팩토리 함수
 def create_app():
     """애플리케이션 팩토리 함수"""
-    # templates 폴더 생성
-    if not os.path.exists('templates'):
-        os.makedirs('templates')
-    
-    # static 폴더 생성
-    if not os.path.exists('static'):
-        os.makedirs('static')
+    try:
+        # templates 폴더 생성 (Vercel 환경에서는 읽기 전용일 수 있음)
+        if not os.path.exists('templates'):
+            try:
+                os.makedirs('templates')
+            except (OSError, PermissionError):
+                pass  # Vercel 환경에서는 무시
+        
+        # static 폴더 생성 (Vercel 환경에서는 읽기 전용일 수 있음)
+        if not os.path.exists('static'):
+            try:
+                os.makedirs('static')
+            except (OSError, PermissionError):
+                pass  # Vercel 환경에서는 무시
+    except Exception as e:
+        print(f"폴더 생성 중 오류 (무시됨): {e}")
     
     return app
 
 # Vercel에서 사용할 애플리케이션 인스턴스
 application = create_app()
-
-# Vercel serverless function handler
-def handler(event, context):
-    """Vercel serverless function handler"""
-    return app
 
 if __name__ == '__main__':
     # templates 폴더 생성
