@@ -372,6 +372,11 @@ def create_app():
 # Vercel에서 사용할 애플리케이션 인스턴스
 application = create_app()
 
+# Vercel serverless function handler
+def handler(event, context):
+    """Vercel serverless function handler"""
+    return app
+
 if __name__ == '__main__':
     # templates 폴더 생성
     if not os.path.exists('templates'):
