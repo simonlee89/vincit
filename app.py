@@ -324,6 +324,9 @@ def test_connection():
         print(f"테스트 오류: {error_result}")
         return jsonify(error_result)
 
+# Vercel을 위한 WSGI 애플리케이션 export
+# Vercel은 'app' 변수를 찾아서 WSGI 애플리케이션으로 사용합니다.
+
 if __name__ == '__main__':
     # templates 폴더 생성
     if not os.path.exists('templates'):

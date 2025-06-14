@@ -45,11 +45,13 @@ ehthumbs.db
 Thumbs.db
 
 # Google Service Account Keys (보안상 중요!)
-*.json
 thetopone-*.json
 구글서비스키/
 service-account.json
 keys/
+# Allow vercel.json and package.json
+!vercel.json
+!package.json
 
 # Environment Variables
 .env
